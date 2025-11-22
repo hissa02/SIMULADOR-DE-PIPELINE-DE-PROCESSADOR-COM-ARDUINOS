@@ -1,6 +1,7 @@
 //c++ code
-//Configuração das portas de entrada--------------------------------------------------------
+#include <Arduino.h>
 
+//Configuração das portas de entrada--------------------------------------------------------
 //Matriz[linhas][colunas]; ex: leds[1][1] = led na porta 0;
 int leds[4][4] = {
     {0,1,2,3},

@@ -1,16 +1,19 @@
 {
-    "configurations": [
-        {
-            "name": "Win32",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ]
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Arduino-AVR",
+      "compilerPath": "/home/mreryk/.arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/bin/avr-gcc",
+      "intelliSenseMode": "gcc-x64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/home/mreryk/.arduino15/packages/arduino/hardware/avr/1.8.6/cores/arduino",
+        "/home/mreryk/.arduino15/packages/arduino/hardware/avr/1.8.6/variants/standard",
+        "/home/mreryk/.arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/avr/include",
+        "/home/mreryk/.arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/lib/gcc/avr/7.3.0/include"
+      ],
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++17"
+    }
+  ],
+  "version": 4
 }
