@@ -31,11 +31,145 @@ void setup(){
 //Funções de simulação----------------------------------------------------------------------
 //Função de exemplo para clock:
 void clock(){
-    delay(2000);
+    delay(1000); // 1 segundo
+}
+//Função de simulação do processamento sem pipeline:
+void noPipeline(){
+    //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, staus normal;
+
+    //Primeiro programa (linha 1):-----------------------------------------------
+    digitalWrite(leds[1][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][1], LOW); //desliga led
+
+    digitalWrite(leds[1][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][2], LOW); //desliga led
+
+    digitalWrite(leds[1][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][3], LOW); //desliga led
+
+    digitalWrite(leds[1][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][4], LOW); //desliga led
+
+    //Segundo programa (linha 2):-----------------------------------------------
+    digitalWrite(leds[2][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][1], LOW); //desliga led
+
+    digitalWrite(leds[2][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][2], LOW); //desliga led
+
+    digitalWrite(leds[2][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][3], LOW); //desliga led
+
+    digitalWrite(leds[2][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][4], LOW); //desliga led
+
+    //Terceiro programa (linha 3):-----------------------------------------------
+    digitalWrite(leds[3][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][1], LOW); //desliga led
+
+    digitalWrite(leds[3][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][2], LOW); //desliga led
+
+    digitalWrite(leds[3][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][3], LOW); //desliga led
+
+    digitalWrite(leds[3][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][4], LOW); //desliga led
+
+    //Quarto programa (linha 4):-----------------------------------------------
+    digitalWrite(leds[4][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][1], LOW); //desliga led
+
+    digitalWrite(leds[4][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][2], LOW); //desliga led
+
+    digitalWrite(leds[4][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][3], LOW); //desliga led
+
+    digitalWrite(leds[4][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][4], LOW); //desliga led
+    
+    //Status final:
+    digitalWrite(ledB, LOW); //desliga led azul
+
 }
 //Função de simulação de funcionamento normal da pipe line:
 void normalStatus(){
-    
+    //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, status normal;
+
+    //Tempo 1: Programa 1 - Busca:
+    digitalWrite(leds[1][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][1], LOW); //desliga led
+
+    //Tempo 2: Programa 1 - Decodifica | Programa 2 - Busca:
+    digitalWrite(leds[1][2], HIGH); //liga led
+    digitalWrite(leds[2][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][2], LOW); //desliga led
+    digitalWrite(leds[2][1], LOW); //desliga led
+
+    //Tempo 3: Programa 1 - Executa | Programa 2 - Decodifica | Programa 3 - Busca:
+    digitalWrite(leds[1][3], HIGH); //liga led
+    digitalWrite(leds[2][2], HIGH); //liga led
+    digitalWrite(leds[3][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][3], LOW); //desliga led
+    digitalWrite(leds[2][2], LOW); //desliga led
+    digitalWrite(leds[3][1], LOW); //desliga led
+
+    //Tempo 4: Programa 1 - Grava | Programa 2 - Executa | Programa 3 - Decodifica | Programa 4 - Busca:
+    digitalWrite(leds[1][4], HIGH); //liga led
+    digitalWrite(leds[2][3], HIGH); //liga led
+    digitalWrite(leds[3][2], HIGH); //liga led
+    digitalWrite(leds[4][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][4], LOW); //desliga led
+    digitalWrite(leds[2][3], LOW); //desliga led
+    digitalWrite(leds[3][2], LOW); //desliga led
+    digitalWrite(leds[4][1], LOW); //desliga led
+
+    //Tempo 5: Programa 1 - Fim | Programa 2 - Grava | Programa 3 - Executa | Programa 4 - Decodifica:
+    digitalWrite(leds[2][3], HIGH);
+    digitalWrite(leds[3][2], HIGH);
+    digitalWrite(leds[4][1], HIGH);
+    clock();
+    digitalWrite(leds[2][3], LOW);
+    digitalWrite(leds[3][2], LOW);
+    digitalWrite(leds[4][1], LOW);
+
+    //Tempo 6: Programa 1 - Fim | Programa 2 - Fim | Programa 3 - Grava | Programa 4 - Executa:
+    digitalWrite(leds[3][3], HIGH);
+    digitalWrite(leds[4][2], HIGH);
+    clock();
+    digitalWrite(leds[3][3], LOW);
+    digitalWrite(leds[4][2], LOW);
+
+    //Tempo 7: Programa 1 - Fim | Programa 2 - Fim | Programa 3 - Fim | Programa 4 - Grava:
+    digitalWrite(leds[4][3], HIGH);
+    clock();
+    digitalWrite(leds[4][3], LOW);
+
+    //Status final:
+    digitalWrite(ledB, LOW);
 }
 //Função de simulação do Hazard estrutural:
 void HStructural(){
@@ -58,32 +192,51 @@ void dinamicPrediction(){
     
 }
 //------------------------------------------------------------------------------------------
+boolean status = 0;
 void loop(){
     //Chamar as funções em tempos específicos com base na sequência de apresentação:
     //Implementar botão para alternar interagir sobre a seleção das funções de forma prática;
     //sequencia: normal > HStructural > HData > HControl > staticPrediction > dinamicPrediction
 
-    while(button == 0){ //ideia de aplicação do botão
+    while(!status){ //ideia de aplicação do botão
+        noPipeline();
+        status = digitalRead(button);
+    }
+
+    while(!status){ //ideia de aplicação do botão
         normalStatus();
+        status = digitalRead(button);
     }
-    button = 0;
-    while(button == 0){ //ideia de aplicação do botão
+
+    status = 0;
+    while(!status){ 
         HStructural();
+        status = digitalRead(button);
     }
-    button = 0;
-    while(button == 0){ //ideia de aplicação do botão
+
+    status = 0;
+    while(!status){
         HData();
+        status = digitalRead(button);
     }
-    button = 0;
-    while(button == 0){ //ideia de aplicação do botão
+
+    status = 0;
+    while(!status){
         HControl();
+        status = digitalRead(button);
     }
-    button = 0;
-    while(button == 0){ //ideia de aplicação do botão
+
+    status = 0;
+    while(!status){
         staticPrediction();
+        status = digitalRead(button);
     }
-    button = 0; 
-    while(button == 0){ //ideia de aplicação do botão
+
+    status = 0; 
+    while(!status){
         dinamicPrediction();
-    }    
+        status = digitalRead(button);
+    }
+
+    return;
 }
