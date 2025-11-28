@@ -2,7 +2,7 @@
 
 Dashboard web em React para visualização em tempo real do simulador de pipeline do Arduino.
 
-## 🚀 Como Rodar
+##  Como Rodar
 
 ### 1. Instalar Dependências
 ```bash
@@ -16,7 +16,7 @@ npm start
 
 O dashboard abrirá automaticamente em `http://localhost:3000`
 
-## 🎮 Como Usar
+##  Como Usar
 
 1. Clique em "Conectar Arduino"
 2. Selecione diferentes modos para ver as simulações
