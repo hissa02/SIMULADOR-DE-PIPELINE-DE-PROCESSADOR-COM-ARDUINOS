@@ -172,16 +172,97 @@ void normalStatus(){
     digitalWrite(ledB, LOW);
 }
 //Função de simulação do Hazard estrutural:
-void HStructural(){
-    
+void HStructural(){//led amarelo indicando perigo estrutural
+
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[1][1], HIGH);
+    clock();
+    digitalWrite(leds[1][1], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    clock();
+    digitalWrite(leds[2][1], LOW);
+    //NÃO desligamos o decode ainda, porque vai travar!
+
+    //Tempo 3: Stall — conflito de recurso
+    //P1 continua preso em Decodifica
+    //P2 NÃO pode seguir para Decodifica
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(ledR, HIGH); //LED vermelho indicando STALL
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Tempo 4: Agora o recurso liberou
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[1][3], HIGH); //P1 Executa
+    digitalWrite(leds[2][2], HIGH); //P2 Decodifica
+    clock();
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[2][2], LOW);
+
 }
 //Função de simulação do Hazard de controle:
 void HControl(){
-    
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[1][1], HIGH);
+    clock();
+    digitalWrite(leds[1][1], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    clock();
+    digitalWrite(leds[2][1], LOW);
+    //P1 continua decodificando
+
+    //Tempo 3: Branch detectado!
+    digitalWrite(ledR, HIGH); //Vermelho piscando pra indicar o drama
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Flush: descartando as instruções P2
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[1][2], LOW);
+
+    //Tempo 4: Recarrega a pipeline no caminho correto
+    digitalWrite(leds[1][3], HIGH);
+    clock();
+    digitalWrite(leds[1][3], LOW);
 }
 //Função de simulação do Hazard de dados:
 void HData(){
-    
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[1][1], HIGH);
+    clock();
+    digitalWrite(leds[1][1], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    clock();
+    digitalWrite(leds[2][1], LOW);
+
+    //Tempo 3: P1 Executa | P2 Decodifica (detecta dependência!)
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][2], HIGH);
+    clock();
+
+    //Tempo 4: Stall — P2 trava no decode
+    digitalWrite(ledR, HIGH); //vermelho avisando
+    digitalWrite(leds[2][2], HIGH);
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Tempo 5: Forward Resolve
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[1][4], HIGH); //P1 grava
+    digitalWrite(leds[2][3], HIGH); //P2 executa
+    clock();
+    digitalWrite(leds[1][4], LOW);
+    digitalWrite(leds[2][3], LOW);
 }
 //Função para simulação de uma Branch Prediction estática:
 void staticPrediction(){
