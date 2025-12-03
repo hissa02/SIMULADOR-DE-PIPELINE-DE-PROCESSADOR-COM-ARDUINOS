@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { generateMockData, MODES, MODE_NAMES } from './utils/mockData';
+import { generateMockData, MODES } from './utils/mockData';
+import { SimulationControl } from './components/SimulationControl';
+import { LEDMatrix } from './components/LEDMatrix';
+import { RGBStatus } from './components/RGBStatus';
+import { PipelineVisualization } from './components/PipelineVisualization';
+import { Metrics } from './components/Metrics';
+import { EventLog } from './components/EventLog';
+import './App.css';
 
 function App() {
   const [currentMode, setCurrentMode] = useState(MODES.NORMAL);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
   const [cycle, setCycle] = useState(0);
   const [pipelineData, setPipelineData] = useState(null);
 
   useEffect(() => {
-    if (!isConnected) {
+    if (!isRunning) {
       setCycle(0);
-      setPipelineData(null);
       return;
     }
 
@@ -19,62 +25,96 @@ function App() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnected]);
+  }, [isRunning]);
 
   useEffect(() => {
-    if (!isConnected) return;
     const data = generateMockData(cycle, currentMode);
     setPipelineData(data);
-  }, [cycle, currentMode, isConnected]);
+  }, [cycle, currentMode]);
+
+  const handleModeChange = (mode) => {
+    setCurrentMode(mode);
+    if (!isRunning) {
+      setCycle(0);
+    }
+  };
+
+  const handlePlayPause = () => {
+    setIsRunning(!isRunning);
+  };
+
+  const handleReset = () => {
+    setCycle(0);
+    setIsRunning(false);
+  };
+
+  if (!pipelineData) {
+    return <div className="app-loading">Carregando...</div>;
+  }
 
   return (
-    <div style={{ padding: '20px', minHeight: '100vh' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>
-        Dashboard Simulador Pipeline
-      </h1>
-      
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        {!isConnected ? (
-          <button 
-            onClick={() => setIsConnected(true)}
-            style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px',
-              backgroundColor: '#0EA5E9',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            Conectar Arduino
-          </button>
-        ) : (
-          <button 
-            onClick={() => setIsConnected(false)}
-            style={{ 
-              padding: '10px 20px', 
-              fontSize: '16px',
-              backgroundColor: '#EF4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            Desconectar
-          </button>
-        )}
-      </div>
-
-      {pipelineData && (
-        <div style={{ textAlign: 'center' }}>
-          <h2>Modo: {MODE_NAMES[currentMode]}</h2>
-          <p>Ciclo: {pipelineData.cycle}</p>
-          <p>CPI: {pipelineData.metrics.cpi.toFixed(2)}</p>
-          <p>Status LED: {pipelineData.rgb}</p>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-content">
+          <h1>Pipeline Simulator Dashboard</h1>
+          <p className="header-subtitle">Simulador didático de pipeline de processadores</p>
         </div>
-      )}
+      </header>
+
+      <main className="app-main">
+        <section className="content-section">
+          <SimulationControl
+            currentMode={currentMode}
+            onModeChange={handleModeChange}
+            isRunning={isRunning}
+            onPlayPause={handlePlayPause}
+            onReset={handleReset}
+            cycle={cycle}
+          />
+        </section>
+
+        <div className="content-grid">
+          <div className="grid-column">
+            <section className="content-section">
+              <LEDMatrix
+                matrix={pipelineData.ledMatrix}
+                cycle={cycle}
+              />
+            </section>
+
+            <section className="content-section">
+              <RGBStatus
+                color={pipelineData.rgb}
+                mode={pipelineData.mode}
+              />
+            </section>
+          </div>
+
+          <div className="grid-column">
+            <section className="content-section">
+              <Metrics metrics={pipelineData.metrics} />
+            </section>
+
+            <section className="content-section">
+              <EventLog
+                events={pipelineData.events}
+                description={pipelineData.description}
+              />
+            </section>
+          </div>
+        </div>
+
+        <section className="content-section full-width">
+          <PipelineVisualization
+            pipeline={pipelineData.pipeline}
+            cycle={cycle}
+          />
+        </section>
+      </main>
+
+      <footer className="app-footer">
+        <p>ARQUITETURA DE COMPUTADORES | Simulador de Pipeline com Arduino</p>
+      </footer>
     </div>
   );
 }
