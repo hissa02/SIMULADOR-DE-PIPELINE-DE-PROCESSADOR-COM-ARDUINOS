@@ -14,7 +14,7 @@ export const MODE_NAMES = {
   dataHazard: 'Hazard de Dados',
   controlHazard: 'Hazard de Controle',
   staticPrediction: 'Predição Estática',
-  dynamicPrediction: 'Predição Dinâmica (Perceptron)'
+  dynamicPrediction: 'Predição Dinâmica'
 };
 
 export const STAGE_NAMES = ['IF', 'ID', 'EX', 'MEM', 'WB'];
