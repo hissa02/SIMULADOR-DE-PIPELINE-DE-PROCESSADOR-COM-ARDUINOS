@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 //Configuração das portas de entrada--------------------------------------------------------
 //Matriz[linhas][colunas]; ex: leds[0][0] = primeiro led
@@ -11,13 +12,22 @@ int leds[4][4] = {
 
 //Portas do led RGB
 int ledR = 17; //A3
-int ledG = 16; //A2
-int ledB = 15; //A1
-//LED amarelo = vermelho + verde
-//Porta lógica, não física
-
-//Porta do botão de interação
+int ledB = 16; //A2
+int ledG = 15; //A1
+//Portas do botal de interação
 int button = 14; //A0
+
+// Variáveis para controle
+int currentCycle = 0;
+String currentMode = "noPipeline";
+int ledMatrix[4][4] = {
+    {0,0,0,0},
+    {0,0,0,0},
+    {0,0,0,0},
+    {0,0,0,0}
+};
+String rgbColor = "#0EA5E9"; // Azul padrão
+boolean status = 0;
 
 //------------------------------------------------------------------------------------------
 //Enumeração dos estados da simulação (máquina de estados)
@@ -49,90 +59,94 @@ void setup() {
     pinMode(ledB, OUTPUT);
     pinMode(ledG, OUTPUT);
     pinMode(button, INPUT);
+    
+    Serial.begin(9600); // Comunicação serial
 }
-
-//------------------------------------------------------------------------------------------
-//Funções auxiliares
-
-void clock() {
-    delay(1000); //1 segundo por ciclo de clock
-}
-
-void clearAllLeds() {
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            digitalWrite(leds[i][j], LOW);
-        }
-    }
-    digitalWrite(ledR, LOW);
-    digitalWrite(ledG, LOW);
-    digitalWrite(ledB, LOW);
-}
-
-bool decisionWindow() {
-    for (int i = 0; i < 3; i++) {
-
-        // LED ON
-        digitalWrite(ledG, HIGH);
-        delay(500);
-
-        // Se apertar, avança
-        if (digitalRead(button) == HIGH) {
-            digitalWrite(ledG, LOW);
-            return true;
-        }
-
-        // LED OFF
-        digitalWrite(ledG, LOW);
-        delay(500);
-
-        // Se apertar, avança
-        if (digitalRead(button) == HIGH) {
-            return true;
-        }
-    }
-
-    // Se passou o tempo todo sem apertar
-    return false;
-}
-
-
-//------------------------------------------------------------------------------------------
 //Funções de simulação----------------------------------------------------------------------
-
-//Simulação sem pipeline
+//Função de exemplo para clock:
+void clock(){
+    delay(1000); // 1 segundo
+}
+//Função de simulação do processamento sem pipeline:
 void noPipeline(){
-    // Status inicial: azul ligado
-    digitalWrite(ledB, HIGH);
+    //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, staus normal;
 
-    // Para cada programa (linha)
-    for(int prog = 0; prog < 4; prog++){
+    //Primeiro programa (linha 1):-----------------------------------------------
+    digitalWrite(leds[1][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][1], LOW); //desliga led
 
-        // Busca
-        digitalWrite(leds[prog][0], HIGH);
-        clock();
-        digitalWrite(leds[prog][0], LOW);
+    digitalWrite(leds[1][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][2], LOW); //desliga led
 
         // Decodifica
         digitalWrite(leds[prog][1], HIGH);
         clock();
         digitalWrite(leds[prog][1], LOW);
 
-        // Executa
-        digitalWrite(leds[prog][2], HIGH);
-        clock();
-        digitalWrite(leds[prog][2], LOW);
+    digitalWrite(leds[1][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[1][4], LOW); //desliga led
 
-        // Grava
-        digitalWrite(leds[prog][3], HIGH);
-        clock();
-        digitalWrite(leds[prog][3], LOW);
-    }
+    //Segundo programa (linha 2):-----------------------------------------------
+    digitalWrite(leds[2][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][1], LOW); //desliga led
 
-    // Status final
-    digitalWrite(ledB, LOW);
+    digitalWrite(leds[2][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][2], LOW); //desliga led
+
+    digitalWrite(leds[2][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][3], LOW); //desliga led
+
+    digitalWrite(leds[2][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[2][4], LOW); //desliga led
+
+    //Terceiro programa (linha 3):-----------------------------------------------
+    digitalWrite(leds[3][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][1], LOW); //desliga led
+
+    digitalWrite(leds[3][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][2], LOW); //desliga led
+
+    digitalWrite(leds[3][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][3], LOW); //desliga led
+
+    digitalWrite(leds[3][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[3][4], LOW); //desliga led
+
+    //Quarto programa (linha 4):-----------------------------------------------
+    digitalWrite(leds[4][1], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][1], LOW); //desliga led
+
+    digitalWrite(leds[4][2], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][2], LOW); //desliga led
+
+    digitalWrite(leds[4][3], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][3], LOW); //desliga led
+
+    digitalWrite(leds[4][4], HIGH); //liga led
+    clock();
+    digitalWrite(leds[4][4], LOW); //desliga led
+    
+    //Status final:
+    digitalWrite(ledB, LOW); //desliga led azul
+
 }
-//Função de simulação de funcionamento normal da pipe line:
+
+//Função de simulação de funcionamento normal da pipeline:
 void normalStatus(){
     // Status inicial: pipeline saudável (LED azul ligado)
     digitalWrite(ledB, HIGH);
@@ -143,233 +157,104 @@ void normalStatus(){
     clock();
     digitalWrite(leds[0][0], LOW);
 
-    // ------------------ CICLO 2 ------------------
-    // P1: Decodifica | P2: Busca
-    digitalWrite(leds[0][1], HIGH);
-    digitalWrite(leds[1][0], HIGH);
+    //Tempo 1: Programa 1 - Busca:
+    digitalWrite(leds[1][1], HIGH); //liga led
     clock();
-    digitalWrite(leds[0][1], LOW);
-    digitalWrite(leds[1][0], LOW);
+    digitalWrite(leds[1][1], LOW); //desliga led
 
-    // ------------------ CICLO 3 ------------------
-    // P1: Executa | P2: Decodifica | P3: Busca
-    digitalWrite(leds[0][2], HIGH);
-    digitalWrite(leds[1][1], HIGH);
-    digitalWrite(leds[2][0], HIGH);
+    //Tempo 2: Programa 1 - Decodifica | Programa 2 - Busca:
+    digitalWrite(leds[1][2], HIGH); //liga led
+    digitalWrite(leds[2][1], HIGH); //liga led
     clock();
-    digitalWrite(leds[0][2], LOW);
-    digitalWrite(leds[1][1], LOW);
-    digitalWrite(leds[2][0], LOW);
+    digitalWrite(leds[1][2], LOW); //desliga led
+    digitalWrite(leds[2][1], LOW); //desliga led
 
-    // ------------------ CICLO 4 ------------------
-    // P1: Grava | P2: Executa | P3: Decodifica | P4: Busca
-    digitalWrite(leds[0][3], HIGH);
-    digitalWrite(leds[1][2], HIGH);
-    digitalWrite(leds[2][1], HIGH);
-    digitalWrite(leds[3][0], HIGH);
+    //Tempo 3: Programa 1 - Executa | Programa 2 - Decodifica | Programa 3 - Busca:
+    digitalWrite(leds[1][3], HIGH); //liga led
+    digitalWrite(leds[2][2], HIGH); //liga led
+    digitalWrite(leds[3][1], HIGH); //liga led
     clock();
-    digitalWrite(leds[0][3], LOW);
-    digitalWrite(leds[1][2], LOW);
-    digitalWrite(leds[2][1], LOW);
-    digitalWrite(leds[3][0], LOW);
+    digitalWrite(leds[1][3], LOW); //desliga led
+    digitalWrite(leds[2][2], LOW); //desliga led
+    digitalWrite(leds[3][1], LOW); //desliga led
 
-    // ------------------ CICLO 5 ------------------
-    // P2: Grava | P3: Executa | P4: Decodifica
-    digitalWrite(leds[1][3], HIGH);
-    digitalWrite(leds[2][2], HIGH);
-    digitalWrite(leds[3][1], HIGH);
+    //Tempo 4: Programa 1 - Grava | Programa 2 - Executa | Programa 3 - Decodifica | Programa 4 - Busca:
+    digitalWrite(leds[1][4], HIGH); //liga led
+    digitalWrite(leds[2][3], HIGH); //liga led
+    digitalWrite(leds[3][2], HIGH); //liga led
+    digitalWrite(leds[4][1], HIGH); //liga led
     clock();
-    digitalWrite(leds[1][3], LOW);
-    digitalWrite(leds[2][2], LOW);
-    digitalWrite(leds[3][1], LOW);
+    digitalWrite(leds[1][4], LOW); //desliga led
+    digitalWrite(leds[2][3], LOW); //desliga led
+    digitalWrite(leds[3][2], LOW); //desliga led
+    digitalWrite(leds[4][1], LOW); //desliga led
 
-    // ------------------ CICLO 6 ------------------
-    // P3: Grava | P4: Executa
+    //Tempo 5: Programa 1 - Fim | Programa 2 - Grava | Programa 3 - Executa | Programa 4 - Decodifica:
     digitalWrite(leds[2][3], HIGH);
     digitalWrite(leds[3][2], HIGH);
     clock();
     digitalWrite(leds[2][3], LOW);
     digitalWrite(leds[3][2], LOW);
 
-    // ------------------ CICLO 7 ------------------
-    // P4: Grava
+    //Tempo 6: Programa 1 - Fim | Programa 2 - Fim | Programa 3 - Grava | Programa 4 - Executa:
     digitalWrite(leds[3][3], HIGH);
     clock();
     digitalWrite(leds[3][3], LOW);
+    digitalWrite(leds[4][2], LOW);
 
-    // Status final: pipeline finalizado
+    //Tempo 7: Programa 1 - Fim | Programa 2 - Fim | Programa 3 - Fim | Programa 4 - Grava:
+    digitalWrite(leds[4][3], HIGH);
+    clock();
+    digitalWrite(leds[4][3], LOW);
+
+    //Status final:
     digitalWrite(ledB, LOW);
 }
-// Função de simulação do Hazard Estrutural
-void HStructural(){
+//Função de simulação do Hazard estrutural:
+void HStructural(){//led amarelo indicando perigo estrutural
 
-    // ---------------- STATUS INICIAL ----------------
-    // Pipeline funcionando normalmente
-    digitalWrite(ledB, HIGH); // azul = tudo ok
-
-    // ---------------- CICLO 1 ----------------
-    // P1: Busca
-    digitalWrite(leds[0][0], HIGH);
-    clock();
-    digitalWrite(leds[0][0], LOW);
-
-    // ---------------- CICLO 2 ----------------
-    // P1: Decodifica | P2: Busca
-    digitalWrite(leds[0][1], HIGH);
-    digitalWrite(leds[1][0], HIGH);
-    clock();
-    digitalWrite(leds[0][1], LOW);
-    digitalWrite(leds[1][0], LOW);
-
-    // ---------------- CICLO 3 ----------------
-    // P1: Executa | P2: Decodifica | P3: Busca
-    digitalWrite(leds[0][2], HIGH);
+    //Tempo 1: P1 Busca
     digitalWrite(leds[1][1], HIGH);
-    digitalWrite(leds[2][0], HIGH);
     clock();
-    digitalWrite(leds[0][2], LOW);
     digitalWrite(leds[1][1], LOW);
-    digitalWrite(leds[2][0], LOW);
 
-    // ---------------- CICLO 4 ----------------
-    // P1: Write Back | P2: Executa | P3: Decodifica | P4: Busca
-    digitalWrite(leds[0][3], HIGH);
+    //Tempo 2: P1 Decodifica | P2 Busca
     digitalWrite(leds[1][2], HIGH);
     digitalWrite(leds[2][1], HIGH);
-    digitalWrite(leds[3][0], HIGH);
     clock();
-    digitalWrite(leds[1][2], LOW);
     digitalWrite(leds[2][1], LOW);
-    digitalWrite(leds[3][0], LOW);
+    //NÃO desligamos o decode ainda, porque vai travar!
 
-    // ---------------- HAZARD ESTRUTURAL ----------------
-    // Recurso ocupado no Write Back → pipeline inteiro em STALL
-    digitalWrite(ledB, LOW); // sai do estado normal
+    //Tempo 3: Stall — conflito de recurso
+    //P1 continua preso em Decodifica
+    //P2 NÃO pode seguir para Decodifica
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(ledR, HIGH); //LED vermelho indicando STALL
+    clock();
+    digitalWrite(ledR, LOW);
 
-    for(int i = 0; i < 3; i++){ // 3 ciclos de stall
-
-        // P1 continua preso no Write Back
-        digitalWrite(leds[0][3], HIGH);
-
-        // LED amarelo piscando = perigo estrutural
-        digitalWrite(ledR, HIGH);
-        digitalWrite(ledG, HIGH);
-
-        clock();
-
-        // Pisca tudo
-        digitalWrite(leds[0][3], LOW);
-        digitalWrite(ledR, LOW);
-        digitalWrite(ledG, LOW);
-
-        clock();
-    }
-
-    // ---------------- PIPELINE RETOMA ----------------
-    digitalWrite(ledB, HIGH); // azul = normal novamente
-
-    // CICLO APÓS STALL
-    // P2: Write Back | P3: Executa | P4: Decodifica
-    digitalWrite(leds[1][3], HIGH);
-    digitalWrite(leds[2][2], HIGH);
-    digitalWrite(leds[3][1], HIGH);
+    //Tempo 4: Agora o recurso liberou
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[1][3], HIGH); //P1 Executa
+    digitalWrite(leds[2][2], HIGH); //P2 Decodifica
     clock();
     digitalWrite(leds[1][3], LOW);
     digitalWrite(leds[2][2], LOW);
-    digitalWrite(leds[3][1], LOW);
 
-    // CICLO FINAL
-    // P3: Write Back | P4: Executa
-    digitalWrite(leds[2][3], HIGH);
-    digitalWrite(leds[3][2], HIGH);
-    clock();
-    digitalWrite(leds[2][3], LOW);
-    digitalWrite(leds[3][2], LOW);
-
-    // Último
-    digitalWrite(leds[3][3], HIGH);
-    clock();
-    digitalWrite(leds[3][3], LOW);
-
-    // Status final
-    digitalWrite(ledB, LOW);
 }
-
-void HData() {
-
-    // STATUS NORMAL
-    digitalWrite(ledB, HIGH);
-
-    // Tempo 1: P1 Busca
-    digitalWrite(leds[0][0], HIGH);
-    clock();
-    digitalWrite(leds[0][0], LOW);
-
-    // Tempo 2: P1 Decodifica | P2 Busca
-    digitalWrite(leds[0][1], HIGH);
-    digitalWrite(leds[1][0], HIGH);
-    clock();
-    digitalWrite(leds[0][1], LOW);
-    digitalWrite(leds[1][0], LOW);
-
-    // Tempo 3: P1 Executa | P2 Decodifica
-    digitalWrite(leds[0][2], HIGH);
+//Função de simulação do Hazard de controle:
+void HControl(){
+    //Tempo 1: P1 Busca
     digitalWrite(leds[1][1], HIGH);
     clock();
-    digitalWrite(leds[0][2], LOW);
     digitalWrite(leds[1][1], LOW);
 
-    // Tempo 4: P1 Write Back | P2 Executa (AQUI NASCE O HAZARD)
-    digitalWrite(ledB, LOW);      // sai do normal
-    digitalWrite(ledR, HIGH);
-    digitalWrite(ledG, HIGH);     // atenção
-
-    for (int i = 0; i < 3; i++) { // 3 ciclos de STALL
-
-        // Pisca os LEDs problemáticos
-        digitalWrite(leds[0][3], HIGH); // P1 em Write Back
-        digitalWrite(leds[1][2], HIGH); // P2 em Execução
-        digitalWrite(ledR, HIGH);
-        digitalWrite(ledG, HIGH);
-
-        clock();
-
-        digitalWrite(leds[0][3], LOW);
-        digitalWrite(leds[1][2], LOW);
-        digitalWrite(ledR, LOW);
-        digitalWrite(ledG, LOW);
-
-        clock();
-    }
-
-    // Hazard resolvido
-    digitalWrite(ledB, HIGH);
-
-    // Continuação normal do pipeline
-    digitalWrite(leds[1][2], LOW); // libera execução do P2
-    digitalWrite(leds[1][3], HIGH); // P2 Write Back
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
     clock();
-    digitalWrite(leds[1][3], LOW);
-
-    digitalWrite(ledB, LOW);
-}
-
-void HControl() {
-
-    // ================= PIPELINE NORMAL ATÉ P3 EXEC =================
-    digitalWrite(ledB, HIGH); // status azul
-
-    // Ciclo 1
-    digitalWrite(leds[0][0], HIGH); // P1 IF
-    clock();
-    digitalWrite(leds[0][0], LOW);
-
-    // Ciclo 2
-    digitalWrite(leds[0][1], HIGH); // P1 ID
-    digitalWrite(leds[1][0], HIGH); // P2 IF
-    clock();
-    digitalWrite(leds[0][1], LOW);
-    digitalWrite(leds[1][0], LOW);
+    digitalWrite(leds[2][1], LOW);
+    //P1 continua decodificando
 
     // Ciclo 3
     digitalWrite(leds[0][2], HIGH); // P1 EX
@@ -380,105 +265,66 @@ void HControl() {
     digitalWrite(leds[1][1], LOW);
     digitalWrite(leds[2][0], LOW);
 
-    // Ciclo 4
-    digitalWrite(leds[0][3], HIGH); // P1 WB
-    digitalWrite(leds[1][2], HIGH); // P2 EX
-    digitalWrite(leds[2][1], HIGH); // P3 ID
-    digitalWrite(leds[3][0], HIGH); // P4 IF
-    clock();
-    digitalWrite(leds[0][3], LOW); // P1 finalizou
-    digitalWrite(leds[1][2], LOW);
+    //Flush: descartando as instruções P2
     digitalWrite(leds[2][1], LOW);
-    digitalWrite(leds[3][0], LOW);
+    digitalWrite(leds[1][2], LOW);
 
-    // ================= HAZARD DE CONTROLE =================
-    // Situação congelada:
-    // P2 em WB
-    // P3 em EX (branch)
-    // P4 em ID
+    //Tempo 4: Recarrega a pipeline no caminho correto
+    digitalWrite(leds[1][3], HIGH);
+    clock();
+    digitalWrite(leds[1][3], LOW);
+}
+//Função de simulação do Hazard de dados:
+void HData(){
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[1][1], HIGH);
+    clock();
+    digitalWrite(leds[1][1], LOW);
 
-    digitalWrite(ledB, LOW); // sai do normal
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    clock();
+    digitalWrite(leds[2][1], LOW);
 
-    digitalWrite(leds[1][3], HIGH); // P2 WB
-    digitalWrite(leds[3][1], HIGH); // P4 ID
-
-    for (int i = 0; i < 3; i++) {
-        // P3 EXEC piscando
-        digitalWrite(leds[2][2], HIGH);
-
-        // STATUS AMARELO
-        digitalWrite(ledR, HIGH);
-        digitalWrite(ledG, HIGH);
-
-        clock();
-
-        digitalWrite(leds[2][2], LOW);
-        digitalWrite(ledR, LOW);
-        digitalWrite(ledG, LOW);
-
-        clock();
-    }
-
-    // ================= BRANCH ERRADO =================
-    // P3 vai para WB
-    // P4 fica esperando em EXEC
-
-    digitalWrite(leds[1][3], LOW); // P2 finaliza
-    digitalWrite(leds[3][1], LOW);
-
-    digitalWrite(leds[3][2], HIGH); // P4 EX
-
-    for (int i = 0; i < 3; i++) {
-        digitalWrite(leds[2][3], HIGH); // P3 WB
-        digitalWrite(ledR, HIGH);       // status vermelho
-
-        clock();
-
-        digitalWrite(leds[2][3], LOW);
-        digitalWrite(ledR, LOW);
-
-        clock();
-    }
-
-    digitalWrite(leds[3][2], LOW);
-
-    // ================= FLUSH =================
-    for (int p = 0; p < 4; p++) {
-        for (int e = 0; e < 4; e++) {
-            digitalWrite(leds[p][e], HIGH);
-        }
-    }
+    //Tempo 3: P1 Executa | P2 Decodifica (detecta dependência!)
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][2], HIGH);
     clock();
 
-    for (int p = 0; p < 4; p++) {
-        for (int e = 0; e < 4; e++) {
-            digitalWrite(leds[p][e], LOW);
-        }
-    }
-
-    // ================= PIPELINE NORMAL NOVAMENTE =================
-    digitalWrite(ledB, HIGH);
-
-    digitalWrite(leds[0][0], HIGH);
+    //Tempo 4: Stall — P2 trava no decode
+    digitalWrite(ledR, HIGH); //vermelho avisando
+    digitalWrite(leds[2][2], HIGH);
     clock();
-    digitalWrite(leds[0][0], LOW);digitalWrite(ledB, HIGH);
+    digitalWrite(ledR, LOW);
 
-    // ------------------ CICLO 1 ------------------
-    // P1: Busca
+    //Tempo 5: Forward Resolve
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[1][4], HIGH); //P1 grava
+    digitalWrite(leds[2][3], HIGH); //P2 executa
+    clock();
+    digitalWrite(leds[1][4], LOW);
+    digitalWrite(leds[2][3], LOW);
+}
+//Função para simulação de uma Branch Prediction estática:
+void staticPrediction(){
+    //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, predição estática ativa
+
+    //Tempo 1: P1 Busca
     digitalWrite(leds[0][0], HIGH);
     clock();
     digitalWrite(leds[0][0], LOW);
 
-    // ------------------ CICLO 2 ------------------
-    // P1: Decodifica | P2: Busca
+    //Tempo 2: P1 Decodifica | P2 Busca
     digitalWrite(leds[0][1], HIGH);
     digitalWrite(leds[1][0], HIGH);
     clock();
     digitalWrite(leds[0][1], LOW);
     digitalWrite(leds[1][0], LOW);
 
-    // ------------------ CICLO 3 ------------------
-    // P1: Executa | P2: Decodifica | P3: Busca
+    //Tempo 3: P1 Executa | P2 Decodifica | P3 Busca
     digitalWrite(leds[0][2], HIGH);
     digitalWrite(leds[1][1], HIGH);
     digitalWrite(leds[2][0], HIGH);
@@ -487,8 +333,79 @@ void HControl() {
     digitalWrite(leds[1][1], LOW);
     digitalWrite(leds[2][0], LOW);
 
-    // ------------------ CICLO 4 ------------------
-    // P1: Grava | P2: Executa | P3: Decodifica | P4: Busca
+    //Tempo 4: Predição ACERTA!
+    digitalWrite(ledG, HIGH); //LED verde = acertou!
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    digitalWrite(leds[3][0], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[3][0], LOW);
+    digitalWrite(ledG, LOW);
+
+    //Tempo 5: Acertou novamente
+    digitalWrite(ledG, HIGH);
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][2], HIGH);
+    digitalWrite(leds[3][1], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[3][1], LOW);
+    digitalWrite(ledG, LOW);
+
+    //Tempo 6: PREDIÇÃO ERRA!
+    digitalWrite(ledR, HIGH); //LED vermelho = ERROU!
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Flush
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[3][0], LOW);
+
+    //Tempo 7: Recuperação
+    digitalWrite(leds[0][3], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+
+    //Status final:
+    digitalWrite(ledB, LOW);
+}
+
+//Função de simulação de uma Branch Prediction dinâmica com Perceptron:
+void dinamicPrediction(){
+    //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, predição dinâmica ativa
+
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[0][0], HIGH);
+    clock();
+    digitalWrite(leds[0][0], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca
+    digitalWrite(leds[0][1], HIGH);
+    digitalWrite(leds[1][0], HIGH);
+    clock();
+    digitalWrite(leds[0][1], LOW);
+    digitalWrite(leds[1][0], LOW);
+
+    //Tempo 3: P1 Executa | P2 Decodifica | P3 Busca
+    digitalWrite(leds[0][2], HIGH);
+    digitalWrite(leds[1][1], HIGH);
+    digitalWrite(leds[2][0], HIGH);
+    clock();
+    digitalWrite(leds[0][2], LOW);
+    digitalWrite(leds[1][1], LOW);
+    digitalWrite(leds[2][0], LOW);
+
+    //Tempo 4: Predição ACERTA! Perceptron aprendeu
+    digitalWrite(ledG, HIGH); //LED verde = acertou!
     digitalWrite(leds[0][3], HIGH);
     digitalWrite(leds[1][2], HIGH);
     digitalWrite(leds[2][1], HIGH);
@@ -499,83 +416,93 @@ void HControl() {
     digitalWrite(leds[2][1], LOW);
     digitalWrite(leds[3][0], LOW);
 
-    // ------------------ CICLO 5 ------------------
-    // P2: Grava | P3: Executa | P4: Decodifica
+    //Tempo 5: Acerta DE NOVO!
+    digitalWrite(leds[0][3], HIGH);
     digitalWrite(leds[1][3], HIGH);
     digitalWrite(leds[2][2], HIGH);
     digitalWrite(leds[3][1], HIGH);
     clock();
+    digitalWrite(leds[0][3], LOW);
     digitalWrite(leds[1][3], LOW);
     digitalWrite(leds[2][2], LOW);
     digitalWrite(leds[3][1], LOW);
 
-    // ------------------ CICLO 6 ------------------
-    // P3: Grava | P4: Executa
+    //Tempo 6: ACERTA MAIS UMA VEZ!
+    digitalWrite(leds[1][3], HIGH);
     digitalWrite(leds[2][3], HIGH);
     digitalWrite(leds[3][2], HIGH);
     clock();
+    digitalWrite(leds[1][3], LOW);
     digitalWrite(leds[2][3], LOW);
     digitalWrite(leds[3][2], LOW);
 
-    // ------------------ CICLO 7 ------------------
-    // P4: Grava
-    digitalWrite(leds[3][3], HIGH);
+    //Tempo 7: Exceção! Perceptron erra
+    digitalWrite(ledR, HIGH); //LED vermelho = ERROU (mas é raro!)
     clock();
-    digitalWrite(leds[3][3], LOW);
+    digitalWrite(ledR, LOW);
 
-    // Status final: pipeline finalizado
+    //Flush
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[3][1], LOW);
+
+    //Tempo 8: Recuperação
+    digitalWrite(leds[0][3], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+
+    //Tempo 9: Perceptron se ajusta
+    digitalWrite(ledG, HIGH); //Verde = aprendeu!
+    clock();
+    digitalWrite(ledG, LOW);
+
+    //Status final:
     digitalWrite(ledB, LOW);
 }
 
-//Função para simulação de uma Branch Prediction estática:
-void staticPrediction(){
-
-}
-//Função de simulação de uma Branch Prediction dinâmica com Percéptron:
-void dinamicPrediction(){
-    
-}
-
 //------------------------------------------------------------------------------------------
-void loop() {
-    bool buttonState = digitalRead(button);
+boolean status = 0;
+void loop(){
+    //Chamar as funções em tempos específicos com base na sequência de apresentação:
+    //Implementar botão para alternar interagir sobre a seleção das funções de forma prática;
+    //sequencia: normal > HStructural > HData > HControl > staticPrediction > dinamicPrediction
 
-    //Detecção de borda de subida (clique)
-    if (decisionWindow()) {
-        currentState = (PipelineState)((currentState + 1) % 7);
-        clearAllLeds();
+    while(!status){ //ideia de aplicação do botão
+        noPipeline();
+        status = digitalRead(button);
     }
 
-    lastButtonState = buttonState;
+    while(!status){ //ideia de aplicação do botão
+        normalStatus();
+        status = digitalRead(button);
+    }
 
-    //Executa o estado atual
-    switch (currentState) {
-        case NO_PIPELINE:
-            noPipeline();
-            break;
+    status = 0;
+    while(!status){ 
+        HStructural();
+        status = digitalRead(button);
+    }
 
-        case PIPELINE_NORMAL:
-            normalStatus();
-            break;
+    status = 0;
+    while(!status){
+        HData();
+        status = digitalRead(button);
+    }
 
-        case HAZARD_STRUCTURAL:
-            HStructural();
-            break;
+    status = 0;
+    while(!status){
+        HControl();
+        status = digitalRead(button);
+    }
 
-        case HAZARD_DATA:
-            HData();
-            break;
+    status = 0;
+    while(!status){
+        staticPrediction();
+        status = digitalRead(button);
+    }
 
-        case HAZARD_CONTROL:
-            HControl();
-            break;
-
-        case STATIC_PREDICTION:
-            staticPrediction();
-            break;
-
-        case DYNAMIC_PREDICTION:
-            dinamicPrediction();
-            break;
+    status = 0; 
+    while(!status){
+        dinamicPrediction();
+        status = digitalRead(button);
     }
 }
