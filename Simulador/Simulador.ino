@@ -266,11 +266,153 @@ void HData(){
 }
 //Função para simulação de uma Branch Prediction estática:
 void staticPrediction(){
+ //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, predição estática ativa
 
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[0][0], HIGH);
+    clock();
+    digitalWrite(leds[0][0], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca (confiando na predição estática)
+    digitalWrite(leds[0][1], HIGH);
+    digitalWrite(leds[1][0], HIGH);
+    clock();
+    digitalWrite(leds[0][1], LOW);
+    digitalWrite(leds[1][0], LOW);
+
+    //Tempo 3: P1 Executa | P2 Decodifica | P3 Busca (ainda confiando)
+    digitalWrite(leds[0][2], HIGH);
+    digitalWrite(leds[1][1], HIGH);
+    digitalWrite(leds[2][0], HIGH);
+    clock();
+    digitalWrite(leds[0][2], LOW);
+    digitalWrite(leds[1][1], LOW);
+    digitalWrite(leds[2][0], LOW);
+
+    //Tempo 4: Predição ACERTA! Pipeline segue normal
+    digitalWrite(ledG, HIGH); //LED verde = acertou!
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    digitalWrite(leds[3][0], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[3][0], LOW);
+    digitalWrite(ledG, LOW);
+
+    //Tempo 5: Tudo fluindo bem (acertou novamente)
+    digitalWrite(ledG, HIGH);
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][2], HIGH);
+    digitalWrite(leds[3][1], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[3][1], LOW);
+    digitalWrite(ledG, LOW);
+
+    //Tempo 6: PREDIÇÃO ERRA! 
+    digitalWrite(ledR, HIGH); //LED vermelho = ERROU!
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Flush: descartando as instruções que foram no caminho errado
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[3][0], LOW);
+
+    //Tempo 7: Recuperação - recomeça no caminho correto
+    digitalWrite(leds[0][3], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+
+    //Status final:
+    digitalWrite(ledB, LOW); //desliga led azul
 }
 //Função de simulação de uma Branch Prediction dinâmica com Percéptron:
 void dinamicPrediction(){
-    
+   //Status inicial:
+    digitalWrite(ledB, HIGH); //liga led azul, predição dinâmica ativa
+
+    //Tempo 1: P1 Busca
+    digitalWrite(leds[0][0], HIGH);
+    clock();
+    digitalWrite(leds[0][0], LOW);
+
+    //Tempo 2: P1 Decodifica | P2 Busca (Perceptron analisa histórico)
+    digitalWrite(leds[0][1], HIGH);
+    digitalWrite(leds[1][0], HIGH);
+    clock();
+    digitalWrite(leds[0][1], LOW);
+    digitalWrite(leds[1][0], LOW);
+
+    //Tempo 3: P1 Executa | P2 Decodifica | P3 Busca (Perceptron prediz com base no padrão)
+    digitalWrite(leds[0][2], HIGH);
+    digitalWrite(leds[1][1], HIGH);
+    digitalWrite(leds[2][0], HIGH);
+    clock();
+    digitalWrite(leds[0][2], LOW);
+    digitalWrite(leds[1][1], LOW);
+    digitalWrite(leds[2][0], LOW);
+
+    //Tempo 4: Predição ACERTA! Perceptron aprendeu o padrão
+    digitalWrite(ledG, HIGH); //LED verde = acertou!
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][2], HIGH);
+    digitalWrite(leds[2][1], HIGH);
+    digitalWrite(leds[3][0], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][2], LOW);
+    digitalWrite(leds[2][1], LOW);
+    digitalWrite(leds[3][0], LOW);
+
+    //Tempo 5: Predição ACERTA DE NOVO! Perceptron confirmou o padrão
+    digitalWrite(leds[0][3], HIGH);
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][2], HIGH);
+    digitalWrite(leds[3][1], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[3][1], LOW);
+
+    //Tempo 6: ACERTA MAIS UMA VEZ! Pipeline super fluida agora
+    digitalWrite(leds[1][3], HIGH);
+    digitalWrite(leds[2][3], HIGH);
+    digitalWrite(leds[3][2], HIGH);
+    clock();
+    digitalWrite(leds[1][3], LOW);
+    digitalWrite(leds[2][3], LOW);
+    digitalWrite(leds[3][2], LOW);
+
+    //Tempo 7: Exceção! Perceptron erra (padrão mudou)
+    digitalWrite(ledR, HIGH); //LED vermelho = ERROU (mas é raro!)
+    clock();
+    digitalWrite(ledR, LOW);
+
+    //Flush rápido
+    digitalWrite(leds[2][2], LOW);
+    digitalWrite(leds[3][1], LOW);
+
+    //Tempo 8: Recuperação e REAPRENDIZADO
+    digitalWrite(leds[0][3], HIGH);
+    clock();
+    digitalWrite(leds[0][3], LOW);
+
+    //Tempo 9: Perceptron se ajusta rapidamente
+    digitalWrite(ledG, HIGH); //Verde novamente = aprendeu!
+    clock();
+    digitalWrite(ledG, LOW);
+
+    //Status final:
+    digitalWrite(ledB, LOW); //desliga led azul
 }
 //------------------------------------------------------------------------------------------
 boolean status = 0;
